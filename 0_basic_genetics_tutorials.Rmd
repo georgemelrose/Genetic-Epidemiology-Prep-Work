@@ -13,7 +13,7 @@ output:
 
 knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
 
-pacman::p_load(tidyverse, patchwork)
+pacman::p_load(tidyverse, patchwork,HardyWeinberg)
 
 ```
 
@@ -31,6 +31,11 @@ knitr::include_graphics("Monday_7_September_work_HWE.png")
 
 ### 1) Simulate Population & Genotype Data
 
+In this specific code simulation below, we're setting up an idealised, synthetic baseline where no evolutionary forces (drift, select, genotyping error) exist at all.We define true_p = 0.3, so we know the exact ground truth of the population's starting allele frequency.
+
+Using the `rbinom()` function, we generate a population that satisfies HWE assumptions. In real-world data I'll be using in my PhD, you won't know underlying P/MAF. You run HWE to see if observed genotypes differ from expected p-squared, 2pq, q-squared proportions.
+
+Significant deviation would signal: genotyping/calling error in quality-control; populations stratification; inbreeding; strong selection. The object of true_p is included in the `rbinom()` code as it simulates drawing 2 alleles (diploid humans) for each individual, where true_p is the independent probability of alternative allele B on any single draw. 
 
 ```{r simulating genotypes}
 
@@ -38,7 +43,7 @@ set.seed(123)
 
 n_samples <- 1000
 
-true_p <- 0.3 # Minor allele frequency (MAF) of alternative allele 'A'
+true_p <- 0.3 # The true Minor allele frequency (MAF) of alternative allele 'A'
 
 # Simulate genotypes (0 = 'AA', 1 = 'AB', 2 = 'BB') using Binomial Distribution
 
@@ -49,10 +54,10 @@ true_p <- 0.3 # Minor allele frequency (MAF) of alternative allele 'A'
 genotypes <- rbinom(n = n_samples, size = 2, prob = true_p)
 
  
-#generating a factor variable of the genotypes -
+#generating a factor variable version of the genotypes -
 #homozygous dominant, heterozygous, and homozygous recessive
-genotype_factor <- factor(genotypes, levels = c(0, 1, 2), labels = c("AA", "AB", "BB"))
 
+genotype_factor <- factor(genotypes, levels = c(0, 1, 2), labels = c("AA", "AB", "BB"))
 
 ```
 
@@ -68,14 +73,63 @@ obs_counts
 
 obs_genotype_freqs <- obs_counts / n_samples
 
-# TODO 1: Calculate observed allele frequency of 'B' (p_obs)
-# Formula: (2 * Count(BB) + Count(AB)) / (2 * N)
+#Calculate allele frequencies#
 
+# The formula is p + q = 1 WRT major and minor allele frequencies# 
+
+#major allele frequency#
 p_obs <- (2 * obs_counts["BB"] + obs_counts["AB"]) / (2 * n_samples)
 
+#minor allele frequency#
 q_obs <- 1 - p_obs
 
 
 ```
 
-### 2) Calculate Observed Genotypes & Allele Frequencies
+### 3) Calculate Expected HWE Genotype Frequencies
+
+```{r HWE to compute expected frequencies}
+
+exp_genotype_props <- c(
+  "AA" = q_obs^2,
+  "AB" = 2 * p_obs * q_obs,
+  "BB" = p_obs^2
+)
+
+# Using the HWE of p^2 + 2pq + q^2 to obtain the expected frequencies#
+
+#This object gives us the expected proportions of homozygous dominant AA, heterozygous AB, and homozygous recessive BB#
+
+#using this step to prevent R concatenating the name of q_obs with AA#
+names(exp_genotype_props) <- c("AA", "AB", "BB")
+exp_genotype_props
+
+# Multiplying the proportions by the no.samples gives us the actual counts#
+exp_counts <- exp_genotype_props * n_samples
+
+exp_counts
+
+```
+
+### 4) Comparing the Observed vs Expected (Using Chi-squared)
+
+```{r Compute Chi-squared test for HWE deviation}
+
+#Using the HardyWeinberg package as it automatically accounts for the parameter estimate, df = 1. 
+
+# The HWChisq() function expects a plain, numeric vector#
+#It will fail when calculating the inbreeding coefficient, f, references as fhat#
+
+# Convert obs_counts to a standard numeric vector
+counts_vec <- as.numeric(obs_counts)
+names(counts_vec) <- c("AA", "AB", "BB")
+
+#Chi-square test with continuity correction for Hardy-Weinberg equilibrium (autosomal)#
+HWChisq(counts_vec, verbose = TRUE)
+
+```
+
+The p-value is 0.73, you fail to reject the null hypothesis, so the observed genotypes counts match the expected Hardy-Weinberg proportions almost perfectly! We can conclude the genotypes are in random-mating equilibrium within a single generation. 
+
+
+
