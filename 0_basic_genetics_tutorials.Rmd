@@ -1,0 +1,81 @@
+---
+title: "Genetic Work Tutorials"
+author: "George Melrose"
+date: "`r Sys.Date()`"
+output:
+ html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+
+pacman::p_load(tidyverse, patchwork)
+
+```
+
+This is an RMD of different aspects of human genetics I need to brush up on before starting my PhD in genetic epidemiology under Professor Perry and Ong at the Institute of Metabolic Science in October 2026. 
+
+ChatGPT recommended these exercises to me, when asking it about a good PhD learning routine. 
+
+## Tuesday 7th September
+
+```{r graphic for Monday's learning}
+
+knitr::include_graphics("Monday_7_September_work_HWE.png")
+
+```
+
+### 1) Simulate Population & Genotype Data
+
+
+```{r simulating genotypes}
+
+set.seed(123)
+
+n_samples <- 1000
+
+true_p <- 0.3 # Minor allele frequency (MAF) of alternative allele 'A'
+
+# Simulate genotypes (0 = 'AA', 1 = 'AB', 2 = 'BB') using Binomial Distribution
+
+#simulating genotypes using binomial distribution
+#binomial distribution because each parent contributes 1 allele independently with a set probability#
+
+
+genotypes <- rbinom(n = n_samples, size = 2, prob = true_p)
+
+ 
+#generating a factor variable of the genotypes -
+#homozygous dominant, heterozygous, and homozygous recessive
+genotype_factor <- factor(genotypes, levels = c(0, 1, 2), labels = c("AA", "AB", "BB"))
+
+
+```
+
+### 2) Calculate Observed Genotypes & Allele Frequencies
+
+```{r calculating the observed genotypes}
+
+# Count genotypes
+
+obs_counts <- table(genotype_factor)
+
+obs_counts
+
+obs_genotype_freqs <- obs_counts / n_samples
+
+# TODO 1: Calculate observed allele frequency of 'B' (p_obs)
+# Formula: (2 * Count(BB) + Count(AB)) / (2 * N)
+
+p_obs <- (2 * obs_counts["BB"] + obs_counts["AB"]) / (2 * n_samples)
+
+q_obs <- 1 - p_obs
+
+
+```
+
+### 2) Calculate Observed Genotypes & Allele Frequencies
