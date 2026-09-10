@@ -235,7 +235,10 @@ model_2 <- lm(phenotype_2 ~ genotype)
 summary(model_2)
 
 ```
-In the above model, wee 
+In the above model, we see a more bunched up histogram and higher squared.
+
+I.e. increasing beta-1 has led to a stronger phenotype-genotype relationship and
+therefore stronger biological effect!
 
 Questions to investigate, answer:
 
