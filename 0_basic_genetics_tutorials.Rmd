@@ -201,8 +201,11 @@ model <- lm(phenotype ~ genotype)
 
 summary(model)
 
-```
+confint(model)
 
+
+```
+Neither this model (or the one below), contain 0 in a confidence interval. Therefore 0 is not a plausible value for the true effect size - the association between phenotype and genotype is statistically significant!
 
 ### Increasing the genetic effect
 
@@ -234,8 +237,12 @@ model_2 <- lm(phenotype_2 ~ genotype)
 
 summary(model_2)
 
+confint(model_2)
+
 ```
-In the above model, we see a more bunched up histogram and higher squared.
+In the above model, we see a more bunched up histogram and higher R squared.
+
+Looking at those test statistics, the model output is very small as we've created a strong effect with 1000 individuals. 
 
 I.e. increasing beta-1 has led to a stronger phenotype-genotype relationship and
 therefore stronger biological effect!
@@ -253,4 +260,9 @@ The histogram becomes more 'bunched up' and the R-squared is higher. As beta-1 i
 
 
 
+
+
+```{r}
+
+```
 
